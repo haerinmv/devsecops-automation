@@ -18,7 +18,7 @@ resource "aws_key_pair" "ssh-key" {
 
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"  
+  instance_type = var.instance_type
   subnet_id     = aws_subnet.subnet_public.id
 
   key_name      = aws_key_pair.ssh-key.key_name
