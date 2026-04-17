@@ -23,6 +23,8 @@ resource "aws_instance" "bastion" {
 
   key_name      = aws_key_pair.ssh-key.key_name
   associate_public_ip_address = true 
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
+
 
   tags = {
     Name = "Bastion-Public"
