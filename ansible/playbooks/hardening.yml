@@ -1,5 +1,7 @@
 ---
 # Playbook de Durcissement CIS Level 1
+# La Pupart des règles ont été recuperer depuis la documentation officielle du CIS d'ansible
+# https://galaxy.ansible.com/ui/
 
 - name: CIS Level 1 - Hardening Ubuntu (mon bastion AWS)
   hosts: all
@@ -17,6 +19,42 @@
         path: /etc/ssh/sshd_config
         regexp: '^#?PermitRootLogin'
         line: 'PermitRootLogin no'
+
+    - name: Forcer les ciphers forts uniquement
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Ciphers'
+        line: 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com'
+
+    - name: Forcer les MACs forts
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?MACs'
+        line: 'MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com'
+
+    - name: Forcer les algorithmes d'échange de clés forts
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?KexAlgorithms'
+        line: 'KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512'
+
+    - name: Réduire le LoginGraceTime à 30 secondes
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?LoginGraceTime'
+        line: 'LoginGraceTime 30'
+
+    - name: Limiter les tentatives d'auth à 3
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?MaxAuthTries'
+        line: 'MaxAuthTries 3'
+
+    - name: Désactiver X11 Forwarding
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?X11Forwarding'
+        line: 'X11Forwarding no'
 
     - name: Interdire l'authentification par mot de passe
       lineinfile:
