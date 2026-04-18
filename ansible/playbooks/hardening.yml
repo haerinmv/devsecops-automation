@@ -66,6 +66,8 @@
       service:
         name: sshd
         state: restarted
+    
+    # Fail2ban
 
     - name: Installer fail2ban
       apt:
@@ -78,6 +80,8 @@
         state: started
         enabled: true
 
+    # Auditd
+
     - name: Installer auditd
       apt:
         name: auditd
@@ -89,6 +93,28 @@
         state: started
         enabled: true
 
+    - name: Déployer les règles auditd CIS
+      copy:
+        dest: /etc/audit/rules.d/cis-hardening.rules
+        owner: root
+        group: root
+        mode: '0640'
+        content: |
+          # Surveillance des fichiers d'identité
+          -w /etc/passwd -p wa -k identity
+          -w /etc/group -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/gshadow -p wa -k identity
+          # Surveillance de sudo
+          -w /etc/sudoers -p wa -k sudo_changes
+          -w /etc/sudoers.d/ -p wa -k sudo_changes
+          # Surveillance de la config SSH
+          -w /etc/ssh/sshd_config -p wa -k sshd_config
+          # Surveillance des logs d'auth
+          -w /var/log/auth.log -p wa -k auth_logs
+          # Verrouiller les règles
+          -e 2
+
     - name: Supprimer les services non sécurisés
       apt:
         name:
@@ -96,3 +122,111 @@
           - rsh-client
           - rsh-server
         state: absent
+
+    # UFW 
+    
+    - name: Installer UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: UFW - Bloquer tout le trafic entrant par défaut
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: UFW - Autoriser le trafic sortant
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: UFW - Autoriser uniquement SSH (port 22)
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: UFW - Activer le firewall
+      ufw:
+        state: enabled
+    
+    # sysctl : durcissement des paramètres kernel
+
+    - name: Désactiver le routage IP
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '0'
+        sysctl_set: yes
+        reload: yes
+
+    - name: Ignorer les redirections ICMP
+      sysctl:
+        name: net.ipv4.conf.all.accept_redirects
+        value: '0'
+        sysctl_set: yes
+        reload: yes
+
+    - name: Activer les SYN cookies (anti-DDoS)
+      sysctl:
+        name: net.ipv4.tcp_syncookies
+        value: '1'
+        sysctl_set: yes
+        reload: yes
+
+    - name: Logger les paquets martiens
+      sysctl:
+        name: net.ipv4.conf.all.log_martians
+        value: '1'
+        sysctl_set: yes
+        reload: yes
+
+    - name: Activer le reverse path filtering (anti-spoofing)
+      sysctl:
+        name: net.ipv4.conf.all.rp_filter
+        value: '1'
+        sysctl_set: yes
+        reload: yes
+
+    - name: Activer ASLR complet
+      sysctl:
+        name: kernel.randomize_va_space
+        value: '2'
+        sysctl_set: yes
+        reload: yes
+
+    # Permissions des fichiers sensibles
+
+    - name: Verrouiller /etc/shadow (hash des mots de passe)
+      file:
+        path: /etc/shadow
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Verrouiller /etc/gshadow
+      file:
+        path: /etc/gshadow
+        owner: root
+        group: root
+        mode: '0600'
+
+    # Bannière légale SSH
+
+    - name: Déployer la bannière légale
+      copy:
+        dest: /etc/issue.net
+        content: |
+          ========================================================
+          ACCES RESTREINT - SYSTEME SURVEILLE
+          Tout acces non autorise est strictement interdit.
+          Toutes les activites sont enregistrees et auditees.
+          ========================================================
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Activer la bannière dans SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Banner'
+        line: 'Banner /etc/issue.net'
