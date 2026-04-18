@@ -1,0 +1,60 @@
+---
+# Playbook de Durcissement CIS Level 1
+
+- name: CIS Level 1 - Hardening Ubuntu (mon bastion AWS)
+  hosts: all
+  become: true 
+
+  tasks:
+
+    - name: Maj des paquets
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Interdire le login root par SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: Interdire l'authentification par mot de passe
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Redémarrer le service SSH
+      service:
+        name: sshd
+        state: restarted
+
+    - name: Installer fail2ban
+      apt:
+        name: fail2ban
+        state: present
+
+    - name: Activer et démarrer fail2ban
+      service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Installer auditd
+      apt:
+        name: auditd
+        state: present
+
+    - name: Activer et démarrer auditd
+      service:
+        name: auditd
+        state: started
+        enabled: true
+
+    - name: Supprimer les services non sécurisés
+      apt:
+        name:
+          - telnet
+          - rsh-client
+          - rsh-server
+        state: absent
