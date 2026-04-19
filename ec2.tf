@@ -26,7 +26,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
 
   # Forcer IMDS v2 
-  
+
   metadata_options {
     http_tokens = "required"
   }
