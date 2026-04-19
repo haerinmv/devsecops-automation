@@ -1,0 +1,67 @@
+# Pipeline CI — Vérification et scans de sécurité
+# Se déclenche sur : push dev + pull request vers main
+
+name: CI - Security Checks
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupérer le code du repo
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # 2. Installer Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 3. Vérifier le formatage du code Terraform
+      # terraform fmt vérifie que le code est bien indenté et formaté
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      # 4. Initialiser Terraform (nécessaire pour validate)
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      # 5. Valider la syntaxe Terraform
+      - name: Terraform Validate
+        run: terraform validate
+
+      # 6. Scanner les misconfigurations de sécurité avec Trivy
+      # Trivy scanne le code IaC et détecte les failles
+      - name: Trivy IaC Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+
+      # 7. Scanner avec Checkov (deuxième couche de vérification sécu)
+      # Checkov vérifie les best practices CIS pour Terraform
+      - name: Checkov Security Scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: false
+
+      # 8. Linter Ansible — vérifie les bonnes pratiques des playbooks
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ansible-lint
+        run: pip install ansible-lint
+
+      - name: Ansible Lint
+        run: ansible-lint ansible/playbooks/hardening.yml

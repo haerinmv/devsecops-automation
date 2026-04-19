@@ -1,0 +1,38 @@
+# Pipeline CD — Terraform Plan sur main
+# Se déclenche uniquement quand du code arrive sur main (après merge)
+
+name: CD - Terraform Plan
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupérer le code
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # 2. Installer Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 3. Configurer les credentials AWS
+      # Les secrets sont stockés dans GitHub Settings > Secrets
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-3
+
+      # 4. Init Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # 5. Plan — montre ce qui va changer sans rien appliquer
+      - name: Terraform Plan
+        run: terraform plan -no-color
