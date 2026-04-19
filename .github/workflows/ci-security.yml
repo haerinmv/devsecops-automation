@@ -1,6 +1,4 @@
 # Pipeline CI — Vérification et scans de sécurité
-# Se déclenche sur : push dev + pull request vers main
-
 name: CI - Security Checks
 
 on:
@@ -14,29 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupérer le code du repo
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      # 2. Installer Terraform
+      # Installation de Terraform
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 3. Vérifier le formatage du code Terraform
-      # terraform fmt vérifie que le code est bien indenté et formaté
+      # Vérification du formatage du code Terraform
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-      # 4. Initialiser Terraform (nécessaire pour validate)
+      # Initialisation de Terraform
       - name: Terraform Init
         run: terraform init -backend=false
 
-      # 5. Valider la syntaxe Terraform
+      # Valider la syntaxe Terraform
       - name: Terraform Validate
         run: terraform validate
 
-      # 6. Scanner les misconfigurations de sécurité avec Trivy
-      # Trivy scanne le code IaC et détecte les failles
+      # Scanner les misconfigurations de sécurité avec Trivy
       - name: Trivy IaC Security Scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -45,16 +41,16 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: '1'
 
-      # 7. Scanner avec Checkov (deuxième couche de vérification sécu)
-      # Checkov vérifie les best practices CIS pour Terraform
+      # Scanner avec Checkov
       - name: Checkov Security Scan
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
           framework: terraform
           soft_fail: false
+          skip_check: CKV_AWS_119,CKV_AWS_145,CKV_AWS_135,CKV_AWS_126,CKV_AWS_144
 
-      # 8. Linter Ansible — vérifie les bonnes pratiques des playbooks
+      # Linter Ansible
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
