@@ -33,3 +33,9 @@ variable "ssh_public_key" {
   type        = string
   default     = ""
 }
+
+variable "my_ip" {
+  description = "Mon IP publique pour SSH"
+  type        = string
+  default     = "0.0.0.0/0"
+}
