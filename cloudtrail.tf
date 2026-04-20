@@ -126,7 +126,8 @@ resource "aws_iam_role_policy" "cloudtrail_to_cloudwatch" {
 }
 
 resource "aws_sns_topic" "cloudtrail_alerts" {
-  name = "devsecops-cloudtrail-alerts"
+  name              = "devsecops-cloudtrail-alerts"
+  kms_master_key_id = "alias/aws/sns"
 }
 
 #checkov:skip=CKV_AWS_35:KMS CMK non active pour contraintes de cout en environnement exercice
