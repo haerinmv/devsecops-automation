@@ -16,6 +16,7 @@ resource "aws_key_pair" "ssh-key" {
 
 # ip unique du serveur
 
+#checkov:skip=CKV_AWS_88:Le bastion doit etre joignable depuis Internet pour administrer le subnet prive
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
@@ -24,6 +25,7 @@ resource "aws_instance" "bastion" {
   key_name                    = aws_key_pair.ssh-key.key_name
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
 
   # Forcer IMDS v2 
 

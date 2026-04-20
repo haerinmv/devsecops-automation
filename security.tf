@@ -13,12 +13,21 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = [var.my_ip]
   }
 
-  # peut aller partout pour recuperer des maj
+  # sorties limitees aux mises a jour systeme
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTP sortant pour mises a jour"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "HTTPS sortant pour mises a jour"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
