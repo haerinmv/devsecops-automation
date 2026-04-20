@@ -16,7 +16,6 @@ resource "aws_key_pair" "ssh-key" {
 
 # ip unique du serveur
 
-#checkov:skip=CKV_AWS_88:Le bastion doit etre joignable depuis Internet pour administrer le subnet prive
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type

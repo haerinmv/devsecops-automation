@@ -1,7 +1,5 @@
 # S3
 
-#checkov:skip=CKV_AWS_18:Le bucket d'etat Terraform n'a pas besoin d'access logs dans ce projet
-#checkov:skip=CKV2_AWS_62:Pas d'evenement S3 requis pour le bucket de state
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "devsecops-tfstate"
 
@@ -41,20 +39,6 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-
-  rule {
-    id     = "abort-incomplete-multipart-uploads"
-    status = "Enabled"
-    filter {}
-
-    abort_incomplete_multipart_upload {
-      days_after_initiation = 7
-    }
-  }
-}
-
 # DynamoDB
 
 resource "aws_dynamodb_table" "terraform_lock" {
@@ -65,10 +49,6 @@ resource "aws_dynamodb_table" "terraform_lock" {
   attribute {
     name = "LockID"
     type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = true
   }
 
   tags = {

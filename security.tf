@@ -13,7 +13,7 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = [var.my_ip]
   }
 
-  # sorties limitees aux mises a jour systeme
+  # peut aller partout pour recuperer des maj
 
   egress {
     description = "HTTP sortant pour mises a jour"
