@@ -11,7 +11,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "ssh-key" {
   key_name   = "cle-bastion"
-  public_key = var.ssh_public_key
+  public_key = file("~/.ssh/id_ed25519.pub") 
 }
 
 # ip unique du serveur
@@ -21,22 +21,10 @@ resource "aws_instance" "bastion" {
   instance_type = var.instance_type
   subnet_id     = aws_subnet.subnet_public.id
 
-  key_name                    = aws_key_pair.ssh-key.key_name
-  associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
+  key_name      = aws_key_pair.ssh-key.key_name
+  associate_public_ip_address = true 
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
 
-  # Forcer IMDS v2 
-
-  metadata_options {
-    http_tokens = "required"
-  }
-
-  # Chiffrer le disque 
-
-  root_block_device {
-    encrypted = true
-  }
 
   tags = {
     Name = "Bastion-Public"
