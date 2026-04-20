@@ -11,7 +11,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "ssh-key" {
   key_name   = "cle-bastion"
-  public_key = file("~/.ssh/id_ed25519.pub") 
+  public_key = file("~/.ssh/id_ed25519.pub")
 }
 
 # ip unique du serveur
@@ -21,9 +21,9 @@ resource "aws_instance" "bastion" {
   instance_type = var.instance_type
   subnet_id     = aws_subnet.subnet_public.id
 
-  key_name      = aws_key_pair.ssh-key.key_name
-  associate_public_ip_address = true 
-  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
+  key_name                    = aws_key_pair.ssh-key.key_name
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
 
 
   tags = {
