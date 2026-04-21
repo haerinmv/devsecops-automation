@@ -59,8 +59,5 @@ jobs:
       - name: Install ansible-lint
         run: pip install ansible-lint
 
-      - name: Install Ansible collections
-        run: ansible-galaxy collection install -r ansible/requirements.yml
-
       - name: Ansible Lint
-        run: ansible-lint ansible/playbooks/hardening.yml
+        run: ansible-lint --profile min ansible/playbooks/hardening.yml

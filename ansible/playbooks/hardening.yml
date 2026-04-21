@@ -131,68 +131,37 @@
         state: present
 
     - name: UFW - Bloquer tout le trafic entrant par défaut
-      community.general.ufw:
-        direction: incoming
-        policy: deny
+      command: ufw default deny incoming
+      changed_when: false
 
     - name: UFW - Autoriser le trafic sortant
-      community.general.ufw:
-        direction: outgoing
-        policy: allow
+      command: ufw default allow outgoing
+      changed_when: false
 
     - name: UFW - Autoriser uniquement SSH (port 22)
-      community.general.ufw:
-        rule: allow
-        port: "22"
-        proto: tcp
+      command: ufw allow 22/tcp
+      changed_when: false
 
     - name: UFW - Activer le firewall
-      community.general.ufw:
-        state: enabled
+      command: ufw --force enable
+      changed_when: false
     
     # sysctl : durcissement des paramètres kernel
 
-    - name: Désactiver le routage IP
-      ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
-        value: '0'
-        sysctl_set: yes
-        reload: yes
-
-    - name: Ignorer les redirections ICMP
-      ansible.posix.sysctl:
-        name: net.ipv4.conf.all.accept_redirects
-        value: '0'
-        sysctl_set: yes
-        reload: yes
-
-    - name: Activer les SYN cookies (anti-DDoS)
-      ansible.posix.sysctl:
-        name: net.ipv4.tcp_syncookies
-        value: '1'
-        sysctl_set: yes
-        reload: yes
-
-    - name: Logger les paquets martiens
-      ansible.posix.sysctl:
-        name: net.ipv4.conf.all.log_martians
-        value: '1'
-        sysctl_set: yes
-        reload: yes
-
-    - name: Activer le reverse path filtering (anti-spoofing)
-      ansible.posix.sysctl:
-        name: net.ipv4.conf.all.rp_filter
-        value: '1'
-        sysctl_set: yes
-        reload: yes
-
-    - name: Activer ASLR complet
-      ansible.posix.sysctl:
-        name: kernel.randomize_va_space
-        value: '2'
-        sysctl_set: yes
-        reload: yes
+    - name: Déployer la configuration sysctl de hardening
+      copy:
+        dest: /etc/sysctl.d/99-cis-hardening.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          net.ipv4.ip_forward = 0
+          net.ipv4.conf.all.accept_redirects = 0
+          net.ipv4.tcp_syncookies = 1
+          net.ipv4.conf.all.log_martians = 1
+          net.ipv4.conf.all.rp_filter = 1
+          kernel.randomize_va_space = 2
+      notify: Recharger sysctl
 
     # Permissions des fichiers sensibles
 
@@ -230,3 +199,9 @@
         path: /etc/ssh/sshd_config
         regexp: '^#?Banner'
         line: 'Banner /etc/issue.net'
+
+  handlers:
+
+    - name: Recharger sysctl
+      command: sysctl --system
+      changed_when: true
