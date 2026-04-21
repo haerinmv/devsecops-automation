@@ -11,20 +11,29 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "ssh-key" {
   key_name   = "cle-bastion"
-  public_key = file("~/.ssh/id_ed25519.pub") 
+  public_key = var.ssh_public_key
 }
 
 # ip unique du serveur
 
 resource "aws_instance" "bastion" {
+  #checkov:skip=CKV2_AWS_41:The bastion does not need AWS API access; no IAM role is safer for this lab.
+  #checkov:skip=CKV_AWS_88:This host is intentionally a public bastion with SSH restricted by security group.
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.subnet_public.id
 
-  key_name      = aws_key_pair.ssh-key.key_name
-  associate_public_ip_address = true 
-  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
+  key_name                    = aws_key_pair.ssh-key.key_name
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
 
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
 
   tags = {
     Name = "Bastion-Public"
