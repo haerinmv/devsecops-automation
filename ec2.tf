@@ -17,6 +17,7 @@ resource "aws_key_pair" "ssh-key" {
 # ip unique du serveur
 
 resource "aws_instance" "bastion" {
+  #checkov:skip=CKV2_AWS_41:The bastion does not need AWS API access; no IAM role is safer for this lab.
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.subnet_public.id

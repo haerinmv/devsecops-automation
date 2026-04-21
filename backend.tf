@@ -1,6 +1,8 @@
 # S3
 
 resource "aws_s3_bucket" "terraform_state" {
+  #checkov:skip=CKV_AWS_18:Access logging skipped for the Terraform state lab bucket to avoid creating a second logging bucket.
+  #checkov:skip=CKV2_AWS_62:Event notifications are not required for this student lab state bucket.
   bucket = "devsecops-tfstate"
 
   tags = {
@@ -14,6 +16,23 @@ resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    id     = "expire-old-state-versions"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
   }
 }
 
@@ -49,6 +68,10 @@ resource "aws_dynamodb_table" "terraform_lock" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
