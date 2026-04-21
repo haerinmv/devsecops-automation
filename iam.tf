@@ -3,6 +3,7 @@
 resource "aws_iam_policy" "terraform_policy" {
   #checkov:skip=CKV_AWS_287:Terraform EC2 provisioning needs broad EC2 read/write permissions in this lab; production would split and scope this policy.
   #checkov:skip=CKV_AWS_289:Permissions management exposure accepted for the lab deploy role and documented as a least-privilege improvement.
+  #checkov:skip=CKV_AWS_290:Write access is required by the Terraform deploy policy in this lab; production would split this by service and tag conditions.
   #checkov:skip=CKV_AWS_355:Several EC2 actions require wildcard resources; production would constrain by tags and service-specific statements.
   name        = "TerraformDeployPolicy"
   description = "Permissions minimales pour Terraform"

@@ -28,6 +28,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail_logs" {
       prefix = ""
     }
 
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
     expiration {
       days = 180
     }
@@ -93,6 +97,9 @@ resource "aws_s3_bucket_policy" "cloudtrail_policy" {
 
 resource "aws_cloudtrail" "main" {
   #checkov:skip=CKV2_AWS_10:CloudWatch Logs integration is planned for a detection phase; S3 CloudTrail is enough for this budget lab.
+  #checkov:skip=CKV_AWS_35:KMS CMK encryption skipped for cost; the S3 bucket uses SSE-S3 for this lab.
+  #checkov:skip=CKV_AWS_67:Single-region CloudTrail is enough for this eu-west-3 lab; multi-region is a production improvement.
+  #checkov:skip=CKV_AWS_252:SNS notifications are planned for a detection phase and skipped to keep this lab simple.
   name                       = "devsecops-trail"
   s3_bucket_name             = aws_s3_bucket.cloudtrail_logs.id
   is_multi_region_trail      = false
