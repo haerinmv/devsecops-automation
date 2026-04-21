@@ -153,42 +153,42 @@
     # sysctl : durcissement des paramètres kernel
 
     - name: Désactiver le routage IP
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.ip_forward
         value: '0'
         sysctl_set: yes
         reload: yes
 
     - name: Ignorer les redirections ICMP
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.conf.all.accept_redirects
         value: '0'
         sysctl_set: yes
         reload: yes
 
     - name: Activer les SYN cookies (anti-DDoS)
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.tcp_syncookies
         value: '1'
         sysctl_set: yes
         reload: yes
 
     - name: Logger les paquets martiens
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.conf.all.log_martians
         value: '1'
         sysctl_set: yes
         reload: yes
 
     - name: Activer le reverse path filtering (anti-spoofing)
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.conf.all.rp_filter
         value: '1'
         sysctl_set: yes
         reload: yes
 
     - name: Activer ASLR complet
-      sysctl:
+      ansible.posix.sysctl:
         name: kernel.randomize_va_space
         value: '2'
         sysctl_set: yes
