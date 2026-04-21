@@ -100,3 +100,4 @@ Ce projet démontre une démarche DevSecOps complète :
 - **durcir** les hôtes,
 - **contrôler** la sécurité en CI/CD,
 - **documenter** les compromis sécurité/coût de manière professionnelle.
+
